@@ -1,6 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
+// Import assets so Vite bundles them correctly for Vercel
+import mapOpeningImg from '../../assets/map_opening.png'
+import welcomePageImg from '../../assets/welcome_page.png'
+import btnSingleImg from '../../assets/btn_single.png'
+import btnMultiImg from '../../assets/btn_multi.png'
+
 const Home = () => {
   const navigate = useNavigate()
   const [showSplash, setShowSplash] = useState(true)
@@ -50,7 +56,7 @@ const Home = () => {
   if (showSplash) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
-           style={{ backgroundImage: 'url("/assets/map_opening.png")' }}>
+           style={{ backgroundImage: `url(${mapOpeningImg})` }}>
         
         {/* Loading content */}
         <div className="relative z-10 text-center bg-black/40 backdrop-blur-sm rounded-2xl p-12">
@@ -66,7 +72,7 @@ const Home = () => {
   return (
     <>
       <div className="w-full h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative"
-           style={{ backgroundImage: 'url("/assets/welcome_page.png")' }}>
+           style={{ backgroundImage: `url(${welcomePageImg})` }}>
         
         {/* Dark overlay untuk kontras */}
         <div className="absolute inset-0 bg-black/40"></div>
@@ -102,7 +108,7 @@ const Home = () => {
               className="group relative transform transition-all duration-500 hover:scale-110 hover:-translate-y-2"
             >
               <img 
-                src="/assets/btn_single.png" 
+                src={btnSingleImg} 
                 alt="Main Sendiri"
                 className="w-72 h-36 md:w-96 md:h-48 object-contain filter drop-shadow-2xl transition-all duration-300 group-hover:drop-shadow-3xl"
               />
@@ -118,7 +124,7 @@ const Home = () => {
               className="group relative transform transition-all duration-500 hover:scale-110 hover:-translate-y-2"
             >
               <img 
-                src="/assets/btn_multi.png" 
+                src={btnMultiImg} 
                 alt="Main Berdua"
                 className="w-72 h-36 md:w-96 md:h-48 object-contain filter drop-shadow-2xl transition-all duration-300 group-hover:drop-shadow-3xl"
               />
