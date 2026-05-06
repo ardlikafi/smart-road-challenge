@@ -1,0 +1,172 @@
+[
+  {
+    "id": 1,
+    "image": "soal_1.webp",
+    "type": "pilihan_ganda",
+    "question": "Apa yang harus kita lakukan jika lampu lalu lintas menyala warna merah?",
+    "options": ["Berjalan terus", "Lari kencang", "Berhenti dengan tertib", "Tidak tahu"],
+    "correctAnswer": "C",
+    "explanation": "Lampu merah berarti semua kendaraan dan pejalan kaki harus berhenti."
+  },
+  {
+    "id": 2,
+    "image": "soal_2.webp",
+    "type": "pilihan_ganda",
+    "question": "Tempat yang paling aman untuk menyeberang jalan adalah di...",
+    "options": ["Jembatan penyeberangan atau zebra cross", "Tikungan jalan yang sepi", "Di antara mobil yang sedang", "Di antara keramaian"],
+    "correctAnswer": "A",
+    "explanation": "Zebra cross atau jembatan penyeberangan adalah tempat resmi dan aman untuk menyeberang."
+  },
+  {
+    "id": 3,
+    "image": "soal_3.webp",
+    "type": "pilihan_ganda",
+    "question": "Sebelum menyeberang jalan, urutan menoleh yang benar adalah...",
+    "options": ["Menoleh ke kanan, ke kiri, lalu ke kanan lagi", "Menoleh ke belakang saja", "Langsung lari tanpa melihat", "Menoleh ke kiri saja"],
+    "correctAnswer": "A",
+    "explanation": "Di Indonesia, kita harus melihat kanan-kiri-kanan untuk memastikan aman."
+  },
+  {
+    "id": 4,
+    "image": "soal_4.webp",
+    "type": "pilihan_ganda",
+    "question": "Saat naik sepeda motor bersama Ayah, kepala kita harus dilindungi dengan...",
+    "options": ["Topi sekolah", "Payung", "Helm yang dikunci dengan benar", "Kopyah"],
+    "correctAnswer": "C",
+    "explanation": "Helm melindungi kepala dari cedera saat berkendara."
+  },
+  {
+    "id": 5,
+    "image": "soal_5.webp",
+    "type": "pilihan_ganda",
+    "question": "Saat berjalan kaki menuju sekolah, kita sebaiknya berjalan di...",
+    "options": ["Tengah jalan", "Trotoar atau pinggir jalan", "Atas selokan", "Atas sungai"],
+    "correctAnswer": "B",
+    "explanation": "Trotoar adalah tempat aman untuk pejalan kaki."
+  },
+  {
+    "id": 6,
+    "image": "soal_6.webp",
+    "type": "pilihan_ganda",
+    "question": "Mengapa kita tidak boleh bermain bola di pinggir jalan raya?",
+    "options": ["Berhenti mendadak", "Karena sangat berbahaya dan bisa tertabrak kendaraan", "Karena nanti dimarahi teman", "Jalan dengan tertib"],
+    "correctAnswer": "B",
+    "explanation": "Bermain di jalan berisiko tinggi tertabrak kendaraan."
+  },
+  {
+    "id": 7,
+    "image": "soal_7.webp",
+    "type": "pilihan_ganda",
+    "question": "Jika ingin menyeberang jalan tapi merasa takut, sebaiknya kita...",
+    "options": ["Menunggu sampai jalan benar-benar kosong atau minta tolong orang dewasa", "Menyebrang sambil memejamkan mata", "Menangis di pinggir jalan", "Mengadu ke orang tua"],
+    "correctAnswer": "A",
+    "explanation": "Keselamatan lebih penting, bisa minta bantuan orang dewasa."
+  },
+  {
+    "id": 8,
+    "image": "soal_8.webp",
+    "type": "pilihan_ganda",
+    "question": "Rambu bergambar huruf \"P\" yang dicoret garis merah artinya...",
+    "options": ["Boleh Parkir", "Dilarang Parkir", "Tempat Pemberhentian Bus", "Tempat permainan"],
+    "correctAnswer": "B",
+    "explanation": "Huruf P dicoret merah berarti dilarang parkir."
+  },
+  {
+    "id": 9,
+    "image": "soal_9.webp",
+    "type": "pilihan_ganda",
+    "question": "Lampu lalu lintas berwarna hijau artinya kendaraan boleh...",
+    "options": ["Berhenti", "Berjalan kembali", "Parkir", "Berhati-hati"],
+    "correctAnswer": "B",
+    "explanation": "Lampu hijau berarti boleh jalan."
+  },
+  {
+    "id": 10,
+    "image": "soal_10.webp",
+    "type": "pilihan_ganda",
+    "question": "Mengapa kita tidak boleh bermain bola di pinggir jalan raya?",
+    "options": ["Karena nanti bolanya kotor", "Karena sangat berbahaya dan bisa tertabrak kendaraan", "Karena nanti dimarahi teman", "Karena nanti diomeli ibu"],
+    "correctAnswer": "B",
+    "explanation": "Risiko tertabrak kendaraan sangat tinggi."
+  },
+  {
+    "id": 11,
+    "image": "soal_11.webp",
+    "type": "pilihan_ganda",
+    "question": "Rambu di bawah ini artinya...",
+    "options": ["Jalan satu arah", "Dilarang belok ke kanan", "Dilarang putar balik", "Dilarang berhenti"],
+    "correctAnswer": "C",
+    "explanation": "Simbol panah berputar dicoret berarti dilarang putar balik."
+  },
+  {
+    "id": 12,
+    "image": "soal_12.webp",
+    "type": "pilihan_ganda",
+    "question": "Berjalan kaki di jalan raya sebaiknya dilakukan di sebelah...",
+    "options": ["Kiri (searah kendaraan)", "Kanan (berlawanan arah agar melihat kendaraan dari depan)", "Tengah-tengah", "Kiri kanan"],
+    "correctAnswer": "B",
+    "explanation": "Berjalan di kanan agar bisa melihat kendaraan dari depan."
+  },
+  {
+    "id": 13,
+    "image": "soal_13.webp",
+    "type": "pilihan_ganda",
+    "question": "Apa yang harus dilakukan jika melihat mobil ambulans membunyikan sirine di jalan?",
+    "options": ["Menghalangi jalannya", "Memberi jalan agar ambulans bisa lewat lebih dulu", "Mengejar ambulans tersebut", "Memberhentikannya di tengah jalan"],
+    "correctAnswer": "B",
+    "explanation": "Ambulans memiliki prioritas di jalan."
+  },
+  {
+    "id": 14,
+    "image": "soal_14.webp",
+    "type": "pilihan_ganda",
+    "question": "Saat menyeberang di zebra cross, kita sebaiknya...",
+    "options": ["Berjalan dengan tenang sambil memperhatikan jalan", "Bermain HP atau membaca buku", "Sambil bercanda dan dorong-dorongan dengan teman", "Berlari dengan cepat"],
+    "correctAnswer": "A",
+    "explanation": "Harus fokus dan berhati-hati saat menyeberang."
+  },
+  {
+    "id": 15,
+    "image": "soal_15.webp",
+    "type": "pilihan_ganda",
+    "question": "Patuh pada aturan lalu lintas bertujuan untuk...",
+    "options": ["Menjaga keselamatan diri sendiri dan orang lain", "Agar cepat sampai tujuan", "Agar dipuji oleh Bapak Polisi", "Agar mendapatkan uang"],
+    "correctAnswer": "A",
+    "explanation": "Tujuan utama aturan lalu lintas adalah keselamatan."
+  },
+  {
+    "id": 16,
+    "image": "soal_16.webp",
+    "type": "esai",
+    "question": "Apa yang harus kamu lakukan sebelum menyeberang jalan raya jika tidak ada petugas keamanan atau lampu lalu lintas?",
+    "correctAnswer": "Menoleh ke kanan dan kiri, memastikan jalan aman, lalu menyeberang dengan hati-hati."
+  },
+  {
+    "id": 17,
+    "image": "soal_17.webp",
+    "type": "esai",
+    "question": "Disebut apakah garis-garis putih di jalan raya yang biasanya digunakan untuk tempat menyeberang?",
+    "correctAnswer": "Zebra cross."
+  },
+  {
+    "id": 18,
+    "image": "soal_18.webp",
+    "type": "esai",
+    "question": "Sebutkan beberapa perlengkapan keselamatan yang harus digunakan saat kamu dibonceng naik sepeda motor!",
+    "correctAnswer": "Helm, jaket, dan sepatu."
+  },
+  {
+    "id": 19,
+    "image": "soal_19.webp",
+    "type": "esai",
+    "question": "Menurut kamu apa yang harus dilakukan jika melihat temanmu bermain bola di pinggir jalan raya?",
+    "correctAnswer": "Menegur dan mengajak bermain di tempat yang aman seperti lapangan."
+  },
+  {
+    "id": 20,
+    "image": "soal_20.webp",
+    "type": "esai",
+    "question": "Sebutkan dan jelaskan apa saja warna pada lampu lalu lintas?",
+    "correctAnswer": "Merah berarti berhenti, kuning berarti hati-hati, hijau berarti jalan."
+  }
+]
