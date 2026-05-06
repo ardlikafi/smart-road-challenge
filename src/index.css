@@ -83,7 +83,7 @@
         margin: 0;
         padding: 0;
         overflow: hidden;
-        font-family: 'Comic Sans MS', 'Marker Felt', cursive, sans-serif;
+        font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
     * {
         box-sizing: border-box;
