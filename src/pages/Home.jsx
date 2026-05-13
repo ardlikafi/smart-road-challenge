@@ -2,9 +2,9 @@ import React, { useRef, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 // Import assets so Vite bundles them correctly for Vercel
-import mapOpeningImg from '../../assets/map_opening.png'
-import welcomePageImg from '../../assets/welcome_page.png'
-import btnSingleImg from '../../assets/btn_single.png'
+import mapOpeningImg from '../../assets/map_opening.webp'
+import welcomePageImg from '../../assets/welcome_page.webp'
+import btnSingleImg from '../../assets/btn_single.webp'
 import btnMultiImg from '../../assets/btn_multi.png'
 
 const Home = () => {
@@ -52,7 +52,7 @@ const Home = () => {
 
   console.log('Rendering state:', { showSplash, showWelcome })
 
-  // Splash Screen dengan map_opening.png
+  // Splash Screen dengan map_opening.webp
   if (showSplash) {
     return (
       <div className="w-full h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat"
@@ -68,7 +68,7 @@ const Home = () => {
     )
   }
 
-  // Welcome Page dengan welcome_page.png tanpa bungkus
+  // Welcome Page dengan welcome_page.webp tanpa bungkus
   return (
     <>
       <div className="w-full h-screen flex items-center justify-center bg-cover bg-center bg-no-repeat relative"

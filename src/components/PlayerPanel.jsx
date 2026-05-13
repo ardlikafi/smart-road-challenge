@@ -2,10 +2,13 @@ import { useEffect, useRef } from 'react'
 import { gsap } from 'gsap'
 
 // Import Pion untuk Avatar
-import pionBoyImg from '../../assets/pion_boy.png'
-import pionGirlImg from '../../assets/pion_girl.png'
+import pionBoyImg from '../../assets/pion_boy.webp'
+import pionGirlImg from '../../assets/pion_girl.webp'
+import ceweAdatImg from '../../assets/tile_ceweadat.webp'
+import cowoAdatImg from '../../assets/tile_cowoadat.webp'
+import superwomanImg from '../../assets/tile_superwoman.webp'
 
-const PlayerPanel = ({ playerNumber, playerName, score, position, isActive, isFlipped = false }) => {
+const PlayerPanel = ({ playerNumber, playerName, score, position, isActive, isFlipped = false, pionType = 'boy' }) => {
   const scoreRef = useRef(null)
 
   // Animasi saat skor bertambah
@@ -34,13 +37,24 @@ const PlayerPanel = ({ playerNumber, playerName, score, position, isActive, isFl
   }
   
   const colors = panelColors[playerNumber] || panelColors[1]
+  const getAvatarImg = (type) => {
+    switch(type) {
+      case 'boy': return pionBoyImg;
+      case 'girl': return pionGirlImg;
+      case 'cowoadat': return cowoAdatImg;
+      case 'ceweadat': return ceweAdatImg;
+      case 'superwoman': return superwomanImg;
+      default: return pionBoyImg;
+    }
+  };
+  const avatarImg = getAvatarImg(pionType);
   
   return (
     <div className={`relative flex items-center ${isFlipped ? 'flex-row-reverse' : 'flex-row'} gap-4 bg-gradient-to-r ${colors.bg} backdrop-blur-md ${colors.border} border-2 border-b-4 border-r-4 rounded-[2rem] shadow-2xl px-5 py-3 ${isActive ? 'scale-110 transition-transform z-50' : 'opacity-80 scale-100 transition-transform z-40 grayscale-[20%]'}`}>
        
        {/* Avatar Character */}
        <div className={`w-14 h-14 md:w-16 md:h-16 rounded-full flex-shrink-0 flex items-center justify-center shadow-inner overflow-hidden border-2 border-white/50 bg-gradient-to-b from-white/40 to-transparent ${isActive ? colors.active : ''}`}>
-          <img src={playerNumber === 1 ? pionBoyImg : pionGirlImg} alt="Avatar" className="w-[120%] h-[120%] object-cover object-top" />
+          <img src={avatarImg} alt="Avatar" className="w-[120%] h-[120%] object-cover object-top" />
        </div>
 
        {/* Info Box */}

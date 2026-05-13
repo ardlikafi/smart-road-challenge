@@ -101,7 +101,7 @@ const VictoryScreen = ({
       >
         {/* Victory Background Image */}
         <img 
-          src="/assets/ui_victory.png" 
+          src="/assets/ui_victory.webp" 
           alt="Victory"
           className="absolute inset-0 w-full h-full object-cover opacity-20"
         />

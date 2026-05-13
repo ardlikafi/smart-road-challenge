@@ -9,11 +9,10 @@ import { gsap } from 'gsap'
 import confetti from 'canvas-confetti'
 
 // Import card assets for the deck
-import cardStepImg from '../../assets/card_step.png'
-import cardChallengeImg from '../../assets/card_challenge.png'
-import cardLearningImg from '../../assets/card_learning.png'
-import cardHelpImg from '../../assets/card_help.png'
-import pionBoyImg from '../../assets/pion_boy.png'
+import cardStepImg from '../../assets/card_step.webp'
+import cardChallengeImg from '../../assets/card_challenge.webp'
+import cardLearningImg from '../../assets/card_learning.webp'
+import cardHelpImg from '../../assets/card_help.webp'
 import avatarImg from '../../assets/avatar.png'
 
 // SFX Imports
@@ -28,9 +27,11 @@ const Game = () => {
   const navigate = useNavigate()
   const gameMode = localStorage.getItem('gameMode') || 'single'
   
-  // Get player names from localStorage
+  // Get player info from localStorage
   const player1Name = localStorage.getItem('player1Name') || 'Player 1'
   const player2Name = localStorage.getItem('player2Name') || 'Player 2'
+  const player1Pion = localStorage.getItem('player1Pion') || 'boy'
+  const player2Pion = localStorage.getItem('player2Pion') || 'girl'
   
   // State management
   const [currentPlayer, setCurrentPlayer] = useState(1)
@@ -45,10 +46,16 @@ const Game = () => {
   const [currentCard, setCurrentCard] = useState(null)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
 
+  // Determine First Player State
+  const [isDeterminingFirst, setIsDeterminingFirst] = useState(gameMode === 'multi')
+  const [p1StartRoll, setP1StartRoll] = useState(null)
+  const [p2StartRoll, setP2StartRoll] = useState(null)
+  const [startRollStep, setStartRollStep] = useState(1) // 1: P1 rolls, 2: P2 rolls, 3: Result
+
   // Kartu Belajar & Naratif State
   const [showBelajar, setShowBelajar] = useState(false)
   const [currentBelajarId, setCurrentBelajarId] = useState(null)
-  const [narrativeText, setNarrativeText] = useState("Halo! Tekan Kartu Langkah untuk berjalan!")
+  const [narrativeText, setNarrativeText] = useState(gameMode === 'multi' ? "Ayo tentukan siapa yang jalan duluan!" : "Halo! Tekan Kartu Langkah untuk berjalan!")
   
   // Powerups (Bantuan)
   const [p1Powerups, setP1Powerups] = useState({ polisi: 1, lampu: 1, skip: 1 })
@@ -65,7 +72,7 @@ const Game = () => {
   useEffect(() => {
     const bgm = new Audio(sfxBgMusic);
     bgm.loop = true;
-    bgm.volume = 0.2; // Volume rendah agar tidak mengganggu
+    bgm.volume = 0.2; 
     
     const startBgm = () => {
       bgm.play().catch(e => console.log("BGM error:", e));
@@ -94,67 +101,133 @@ const Game = () => {
   const [correctAnswers, setCorrectAnswers] = useState(0)
   const [isPlayerMoving, setIsPlayerMoving] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
+  const [showDebug, setShowDebug] = useState(false)
 
   const stepCardRef = useRef(null)
   const deckRef = useRef(null)
 
-  // Generate 100 waypoints
+  // ============================================================
+  // WAYPOINTS — 60 petak di 6 map
+  // Formula: globalX = (mapIndex * 100 + localX) / 6
+  // localX=50 → pion muncul di 50% lebar viewport (tengah layar)
+  // Jalur: pion masuk dari awal jalan tiap map, keluar di ujung jalan
+  // ============================================================
   const generateCoordinates = () => {
     const coords = [];
-    
-    // Konfigurasi X dan Y koordinat LOKAL untuk tiap 10 map (dalam persentase layar tunggal 0-100%)
-    // Map 1: Mulai dari zebra cross bawah (x=30) serong ke kanan atas (jembatan)
+    const TOTAL_MAPS = 8;
+
     const mapPaths = [
+      // Map 1
       [
-        {x: 30, y: 85}, {x: 35, y: 78}, {x: 42, y: 70}, {x: 50, y: 63}, {x: 58, y: 57},
-        {x: 66, y: 52}, {x: 74, y: 48}, {x: 82, y: 45}, {x: 90, y: 43}, {x: 96, y: 42}
+        {x: 35, y: 91.5}, {x: 41.3, y: 84.3}, {x: 47.1, y: 77.8}, {x: 52.6, y: 73.3}, {x: 58.7, y: 68.4},
+        {x: 64, y: 64.2}, {x: 66.4, y: 58}, {x: 70.2, y: 53}, {x: 73.6, y: 45.9}, {x: 71.9, y: 39.8}
       ],
-      // Map 2: Dari jembatan turun perlahan ke jalan lurus (y=65)
+      // Map 2
       [
-        {x: 5, y: 42}, {x: 15, y: 45}, {x: 25, y: 49}, {x: 35, y: 54}, {x: 45, y: 59},
-        {x: 55, y: 63}, {x: 65, y: 65}, {x: 75, y: 65}, {x: 85, y: 65}, {x: 95, y: 65}
+        {x: 38.3, y: 91.8}, {x: 43, y: 84.1}, {x: 46.4, y: 79}, {x: 49.9, y: 72.8}, {x: 56.4, y: 60.4},
+        {x: 61.8, y: 51.9}, {x: 65.2, y: 45}, {x: 68.5, y: 40.3}, {x: 71.9, y: 36.5}, {x: 74.7, y: 29.9}
       ],
-      // Map 3 - 9: Jalan raya mendatar lurus (y=65)
-      ...Array(7).fill([
-        {x: 5, y: 65}, {x: 15, y: 65}, {x: 25, y: 65}, {x: 35, y: 65}, {x: 45, y: 65},
-        {x: 55, y: 65}, {x: 65, y: 65}, {x: 75, y: 65}, {x: 85, y: 65}, {x: 95, y: 65}
-      ]),
-      // Map 10: Ujung jalan menuju bangunan sekolah (mengecil ke tengah)
+      // Map 3
       [
-        {x: 5, y: 65}, {x: 15, y: 65}, {x: 25, y: 65}, {x: 35, y: 63}, {x: 45, y: 60},
-        {x: 55, y: 57}, {x: 65, y: 53}, {x: 75, y: 49}, {x: 85, y: 45}, {x: 90, y: 40}
-      ]
+        {x: 32, y: 94.5}, {x: 40.1, y: 89.3}, {x: 47.9, y: 84.1}, {x: 54.5, y: 82.2}, {x: 62, y: 76.4},
+        {x: 66.9, y: 68.8}, {x: 71, y: 63.3}, {x: 76.3, y: 58.9}, {x: 81, y: 55.4}, {x: 91.4, y: 49.6}
+      ],
+      // Map 4
+      [
+        {x: 36.2, y: 93.9}, {x: 42.4, y: 83.1}, {x: 46, y: 72.4}, {x: 50, y: 62.6}, {x: 54.3, y: 54.8},
+        {x: 56.2, y: 47.6}, {x: 55.5, y: 41.4}, {x: 56.5, y: 37.8}, {x: 58.3, y: 34.9}, {x: 61.3, y: 31.8}
+      ],
+      // Map 5
+      [
+        {x: 30.3, y: 93.8}, {x: 39.3, y: 87.2}, {x: 46, y: 83.2}, {x: 54.4, y: 80}, {x: 63.7, y: 75.8},
+        {x: 69.9, y: 71.3}, {x: 74.1, y: 64.3}, {x: 78.3, y: 56.2}, {x: 83.1, y: 51.3}, {x: 92.4, y: 43.4}
+      ],
+      // Map 6
+      [
+        {x: 24, y: 92}, {x: 35.5, y: 84.7}, {x: 46.6, y: 78.4}, {x: 54.9, y: 72.8}, {x: 61.8, y: 68.2},
+        {x: 68.2, y: 64.3}, {x: 75.7, y: 60.7}, {x: 81.8, y: 58.4}, {x: 87.5, y: 54.8}, {x: 93.8, y: 49.6}
+      ],
+      // Map 7
+      [
+        {x: 22.4, y: 93.3}, {x: 29.6, y: 87.1}, {x: 37.8, y: 82.9}, {x: 44.7, y: 78.5}, {x: 51, y: 71.9},
+        {x: 55.1, y: 65.2}, {x: 59.2, y: 60.3}, {x: 62.9, y: 56.2}, {x: 65.9, y: 52.7}, {x: 71.4, y: 44.6}
+      ],
+      // Map 8
+      [
+        {x: 35.4, y: 97.6}, {x: 39.3, y: 93.2}, {x: 42.3, y: 88.4}, {x: 45.5, y: 83}, {x: 48.9, y: 77.4},
+        {x: 51, y: 74.9}, {x: 53.6, y: 70.6}, {x: 56.5, y: 66}, {x: 55.1, y: 59.4}, {x: 49.8, y: 50.8}
+      ],
     ];
 
-    for (let m = 0; m < 10; m++) {
+    for (let m = 0; m < TOTAL_MAPS; m++) {
       for (let t = 0; t < 10; t++) {
-        // Konversi koordinat lokal map ke koordinat global (karena lebar total = 1000%)
-        // 1 map = 10% lebar global. 
-        const localX = mapPaths[m] ? mapPaths[m][t].x : (t * 10 + 5);
-        const localY = mapPaths[m] ? mapPaths[m][t].y : 65;
-        
-        const globalX = (m * 10) + (localX / 10);
-        coords.push({ x: `${globalX.toFixed(2)}%`, y: `${localY}%` });
+        const wp = mapPaths[m][t];
+        const globalX = (m * 100 + wp.x) / TOTAL_MAPS;
+        coords.push({ x: `${globalX.toFixed(2)}%`, y: `${wp.y}%` });
       }
     }
     return coords;
   }
   const tileCoordinates = useRef(generateCoordinates()).current;
 
-  // Draw Step Card function (Pengganti Dadu)
+
+  // Handle Start Roll for 2 Players
+  const handleStartRoll = () => {
+    if (isRolling) return;
+    setIsRolling(true);
+    playSfx(sfxCardFlip);
+
+    const val = Math.floor(Math.random() * 6) + 1;
+    
+    if (startRollStep === 1) {
+      setP1StartRoll(val);
+      setTimeout(() => {
+        setIsRolling(false);
+        setStartRollStep(2);
+      }, 1000);
+    } else if (startRollStep === 2) {
+      setP2StartRoll(val);
+      setTimeout(() => {
+        setIsRolling(false);
+        setStartRollStep(3);
+        
+        // Finalize who goes first
+        setTimeout(() => {
+          if (val > p1StartRoll) {
+            setCurrentPlayer(2);
+            setNarrativeText(`${player2Name} menang kocokan! Giliranmu duluan.`);
+          } else if (p1StartRoll > val) {
+            setCurrentPlayer(1);
+            setNarrativeText(`${player1Name} menang kocokan! Giliranmu duluan.`);
+          } else {
+            // Seri, ulang lagi
+            setNarrativeText("Hasil seri! Ayo kocok lagi.");
+            setP1StartRoll(null);
+            setP2StartRoll(null);
+            setStartRollStep(1);
+            return;
+          }
+          
+          setTimeout(() => {
+            setIsDeterminingFirst(false);
+          }, 2000);
+        }, 1000);
+      }, 1000);
+    }
+  };
+
   const drawStepCard = useCallback(() => {
-    if (isRolling || gameOver || isPlayerMoving) return
+    if (isRolling || gameOver || isPlayerMoving || isDeterminingFirst) return
     
     setIsRolling(true)
     playSfx(sfxCardFlip)
     
-    // Animasi GSAP Flip
     gsap.to(stepCardRef.current, {
       rotationY: 90,
       duration: 0.3,
       ease: "power2.in",
       onComplete: () => {
-        const randomValue = Math.floor(Math.random() * 4) + 1 // Angka 1-4
+        const randomValue = Math.floor(Math.random() * 5) + 1
         setDrawnNumber(randomValue)
         setNarrativeText(`Wah, dapat angka ${randomValue}! Ayo jalan!`)
         
@@ -163,7 +236,6 @@ const Game = () => {
           duration: 0.3,
           ease: "power2.out",
           onComplete: () => {
-            // Tunggu 1.5 detik agar pemain melihat angka, lalu hide deck dan jalan
             setTimeout(() => {
               toggleDeck(false)
               setNarrativeText("Sedang berjalan...")
@@ -173,9 +245,8 @@ const Game = () => {
         })
       }
     })
-  }, [isRolling, gameOver, isPlayerMoving])
+  }, [isRolling, gameOver, isPlayerMoving, isDeterminingFirst])
 
-  // Hide deck during movement
   const toggleDeck = (show) => {
     if (deckRef.current) {
       gsap.to(deckRef.current, {
@@ -187,90 +258,81 @@ const Game = () => {
     }
   }
 
-  // Move player function - Step by step movement
   const movePlayer = useCallback((steps) => {
     setIsPlayerMoving(true)
-    toggleDeck(false) // Sembunyikan deck saat jalan
-    
+    toggleDeck(false)
+
     const currentPos = currentPlayer === 1 ? player1Position : player2Position
     const targetPos = Math.min(currentPos + steps, tileCoordinates.length - 1)
-    
+
+    // BUG FIX: Gerakkan SEMUA langkah dulu, baru cek special tile di posisi akhir.
+    // Sebelumnya: clearInterval saat MELEWATI special tile → dapat 5 langkah tapi berhenti di langkah 3.
+    // Sekarang: special tile hanya dicek saat MENDARAT, bukan saat dilewati.
     let currentStep = currentPos
     const moveInterval = setInterval(() => {
       currentStep++
-      playSfx(sfxStep) // Suara langkah
-      
-      if (currentStep <= targetPos) {
-        if (currentPlayer === 1) {
-          setPlayer1Position(currentStep)
-        } else {
-          setPlayer2Position(currentStep)
-        }
-        
-        // Cek petak tantangan (Misal setiap 4-5 petak)
-        const specialTiles = [
-          5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 
-          55, 60, 65, 70, 75, 80, 85, 90, 95, 98
-        ];
-        if (specialTiles.includes(currentStep)) {
-          clearInterval(moveInterval) // Pause gerakan
-          setTimeout(() => {
-            // Peluang 30% untuk Kartu Belajar, 70% Kartu Tantangan
-            const isBelajar = Math.random() < 0.3;
-            if (isBelajar) {
-              const randomId = Math.floor(Math.random() * 7) + 1; // 1 to 7
-              setCurrentBelajarId(randomId);
-              setShowBelajar(true);
-              setNarrativeText("Wah, ada info baru! Kartu Belajar ditemukan!");
-              playSfx(sfxSparkle);
-            } else {
-              if (currentQuestionIndex < questionsData.length) {
-                setCurrentCard(questionsData[currentQuestionIndex])
-                setShowCard(true)
-                setNarrativeText("Siap-siap, jawab tantangan ini dengan benar ya!");
-              } else {
-                finishTurn(); // Jika soal habis, jalan terus
-              }
-            }
-          }, 1000)
-          return
-        }
-        
-        // Cek Game Over
+      playSfx(sfxStep)
+
+      if (currentPlayer === 1) {
+        setPlayer1Position(currentStep)
+      } else {
+        setPlayer2Position(currentStep)
+      }
+
+      if (currentStep >= targetPos) {
+        clearInterval(moveInterval)
+
+        // Cek game over
         if (currentStep >= tileCoordinates.length - 1) {
           setGameOver(true)
           setWinner(currentPlayer)
-          clearInterval(moveInterval)
           return
         }
-      } else {
-        clearInterval(moveInterval)
-        finishTurn()
+
+        // Cek jenis tile saat LANDING:
+        // - Kelipatan 3 → soal pasti muncul (semua 20 soal terjamin)
+        // - Petak biasa → 25% muncul Kartu Belajar, 75% lanjut giliran
+        const isSpecialTile = currentStep % 3 === 0 && currentStep > 0
+        setTimeout(() => {
+          if (isSpecialTile) {
+            // Soal diulang dari awal jika sudah habis semua 20 (loop)
+            const qIndex = currentQuestionIndex % questionsData.length
+            setCurrentCard(questionsData[qIndex])
+            setShowCard(true)
+            setNarrativeText('Siap-siap, jawab tantangan ini dengan benar ya!')
+          } else if (Math.random() < 0.25) {
+            // Kartu Belajar muncul di petak biasa (25% peluang)
+            const randomId = Math.floor(Math.random() * 7) + 1
+            setCurrentBelajarId(randomId)
+            setShowBelajar(true)
+            setNarrativeText('Wah, ada info baru! Kartu Belajar ditemukan!')
+            playSfx(sfxSparkle)
+          } else {
+            finishTurn()
+          }
+        }, 600)
       }
-    }, 600) // 600ms per step agar terlihat meliuk mulus (nanti diatur GSAP motionPath di GameBoard)
+    }, 500) // 500ms per langkah — lebih smooth
   }, [currentPlayer, player1Position, player2Position, tileCoordinates.length, currentQuestionIndex])
 
   const finishTurn = () => {
     setTimeout(() => {
-      // Reset kartu langkah
       setDrawnNumber(null)
       if (gameMode === 'multi') {
         const nextPlayer = currentPlayer === 1 ? 2 : 1;
         setCurrentPlayer(nextPlayer)
-        setNarrativeText(`Giliran Player ${nextPlayer}! Tekan Kartu Langkah.`);
+        setNarrativeText(`Giliran ${nextPlayer === 1 ? player1Name : player2Name}! Tekan Kartu Langkah.`);
       } else {
-        setCurrentPlayer(1) // Keep Player 1 in single player mode
+        setCurrentPlayer(1) 
         setNarrativeText("Giliranmu lagi! Tekan Kartu Langkah.");
       }
       setIsPlayerMoving(false)
       setIsRolling(false)
-      toggleDeck(true) // Munculkan deck lagi
+      toggleDeck(true) 
     }, 500)
   }
 
-  // Handle tutup Kartu Belajar
   const handleCloseBelajar = useCallback(() => {
-    // Beri bonus 5 poin
     if (currentPlayer === 1) {
       setPlayer1Score(prev => prev + 5)
     } else {
@@ -280,8 +342,6 @@ const Game = () => {
     setNarrativeText("Asyik, dapat +5 poin karena belajar! Lanjut jalan yuk.");
     setShowBelajar(false)
     setCurrentBelajarId(null)
-    
-    // Lanjutkan giliran
     finishTurn()
   }, [currentPlayer])
 
@@ -295,11 +355,8 @@ const Game = () => {
     playSfx(sfxSparkle);
   }, []);
 
-  // Handle card answer
   const handleCardAnswer = useCallback((isCorrect, selectedAnswer = null) => {
-    // Alur Feedback dan Penilaian
     if (isCorrect) {
-      // Efek konfeti saat jawaban benar!
       confetti({
         particleCount: 150,
         spread: 70,
@@ -310,7 +367,6 @@ const Game = () => {
 
       setCorrectAnswers(prev => prev + 1)
       
-      // Tambah skor 10 poin per soal benar
       if (currentPlayer === 1) {
         setPlayer1Score(prev => prev + 10)
       } else {
@@ -321,41 +377,17 @@ const Game = () => {
       playSfx(sfxWrong);
     }
     
-    // Lanjut ke soal berikutnya secara berurutan
     setTotalQuestions(prev => prev + 1)
     setCurrentQuestionIndex(prev => prev + 1)
-    
     setShowCard(false)
     setCurrentCard(null)
-    
-    // Lanjutkan giliran setelah modal tertutup
     finishTurn()
   }, [currentPlayer])
 
   const resetGame = useCallback(() => {
-    setCurrentPlayer(1)
-    setPlayer1Position(0)
-    setPlayer2Position(0)
-    setPlayer1Score(0)
-    setPlayer2Score(0)
-    setIsRolling(false)
-    setDrawnNumber(null)
-    setShowCard(false)
-    setCurrentCard(null)
-    setCurrentQuestionIndex(0)
-    setGameOver(false)
-    setWinner(null)
-    setTotalQuestions(0)
-    setCorrectAnswers(0)
-    setIsPlayerMoving(false)
-    
-    localStorage.removeItem('player1Name')
-    localStorage.removeItem('player2Name')
-    
     navigate('/setup')
   }, [navigate])
 
-  // Idle floating animation for the deck cards
   useEffect(() => {
     gsap.to('.deck-card', {
       y: -10,
@@ -375,10 +407,11 @@ const Game = () => {
         player2Position={player2Position}
         gameMode={gameMode}
         tileCoordinates={tileCoordinates}
+        player1Pion={player1Pion}
+        player2Pion={player2Pion}
+        showDebug={showDebug}
       />
       
-      {/* Judul lama di atas dihapus, dipindah ke bawah */}
-
       {/* UI Panels */}
       <div className="absolute top-6 left-6 z-40">
         <PlayerPanel
@@ -386,7 +419,8 @@ const Game = () => {
           playerName={player1Name}
           score={player1Score}
           position={player1Position}
-          isActive={currentPlayer === 1}
+          isActive={currentPlayer === 1 && !isDeterminingFirst}
+          pionType={player1Pion}
         />
       </div>
       
@@ -397,77 +431,118 @@ const Game = () => {
             playerName={player2Name}
             score={player2Score}
             position={player2Position}
-            isActive={currentPlayer === 2}
+            isActive={currentPlayer === 2 && !isDeterminingFirst}
             isFlipped={true}
+            pionType={player2Pion}
           />
         </div>
       )}
       
-      {/* Hamburger Navigation Menu */}
+      {/* First Player Determination Overlay */}
+      {isDeterminingFirst && (
+        <div className="fixed inset-0 z-[100] bg-black/70 backdrop-blur-md flex items-center justify-center p-6">
+          <div className="bg-white/90 p-8 rounded-[3rem] border-8 border-yellow-400 shadow-2xl max-w-2xl w-full text-center">
+            <h2 className="text-4xl font-black text-blue-800 mb-8 uppercase tracking-widest">Siapa yang duluan?</h2>
+            
+            <div className="flex justify-around items-center mb-10">
+              <div className={`p-6 rounded-3xl transition-all ${startRollStep === 1 ? 'bg-yellow-100 ring-4 ring-yellow-400 scale-110' : 'bg-gray-100 opacity-50'}`}>
+                <p className="font-bold text-blue-600 mb-4">{player1Name}</p>
+                <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-inner border-2 border-blue-200 overflow-hidden">
+                  {p1StartRoll ? (
+                    <img src={new URL(`../../assets/dice_${p1StartRoll}.webp`, import.meta.url).href} alt={`Dice ${p1StartRoll}`} className="w-20 h-20 object-contain" />
+                  ) : (
+                    <span className="text-4xl font-black text-gray-300">?</span>
+                  )}
+                </div>
+              </div>
+              
+              <div className="text-3xl font-black text-gray-400">VS</div>
+              
+              <div className={`p-6 rounded-3xl transition-all ${startRollStep === 2 ? 'bg-pink-100 ring-4 ring-pink-400 scale-110' : 'bg-gray-100 opacity-50'}`}>
+                <p className="font-bold text-pink-600 mb-4">{player2Name}</p>
+                <div className="w-24 h-24 bg-white rounded-2xl flex items-center justify-center shadow-inner border-2 border-pink-200 overflow-hidden">
+                  {p2StartRoll ? (
+                    <img src={new URL(`../../assets/dice_${p2StartRoll}.webp`, import.meta.url).href} alt={`Dice ${p2StartRoll}`} className="w-20 h-20 object-contain" />
+                  ) : (
+                    <span className="text-4xl font-black text-gray-300">?</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            
+            {startRollStep < 3 ? (
+              <button 
+                onClick={handleStartRoll}
+                className={`px-12 py-5 rounded-2xl font-black text-2xl text-white shadow-lg transform active:scale-95 transition-all ${startRollStep === 1 ? 'bg-blue-500 hover:bg-blue-600' : 'bg-pink-500 hover:bg-pink-600'}`}
+              >
+                {startRollStep === 1 ? `${player1Name} KOCOK!` : `${player2Name} KOCOK!`}
+              </button>
+            ) : (
+              <div className="text-3xl font-black text-green-600 animate-bounce">
+                {p1StartRoll > p2StartRoll ? `${player1Name} MULAI!` : `${player2Name} MULAI!`}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Menu & Indicators */}
       <div className="absolute top-4 right-4 z-50">
-        <button 
-          onClick={() => setShowMenu(!showMenu)}
-          className="bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/30 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all"
-          title="Menu Game"
-        >
+        <button onClick={() => setShowMenu(!showMenu)} className="bg-black/40 hover:bg-black/60 backdrop-blur-md border border-white/30 text-white w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all">
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
         </button>
-
         {showMenu && (
-          <div className="absolute top-16 right-0 w-56 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-gray-200 p-2 flex flex-col gap-1 animate-fade-in origin-top-right">
-            <button onClick={() => { resetGame(); setShowMenu(false); }} className="w-full text-left px-4 py-3 hover:bg-blue-50 text-gray-800 font-bold rounded-xl transition-colors flex items-center gap-3">
-              <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-              Ulangi Game
+          <div className="absolute top-16 right-0 w-60 bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl border-2 border-gray-200 p-2 flex flex-col gap-1 animate-fade-in origin-top-right">
+            <button onClick={() => { navigate('/setup'); setShowMenu(false); }} className="w-full text-left px-4 py-3 hover:bg-blue-50 text-gray-800 font-bold rounded-xl transition-colors flex items-center gap-3">
+               🔄 Ulangi Game
             </button>
-            <button onClick={() => { alert("Menu Pengaturan (Sedang dikembangkan)"); setShowMenu(false); }} className="w-full text-left px-4 py-3 hover:bg-yellow-50 text-gray-800 font-bold rounded-xl transition-colors flex items-center gap-3">
-              <svg className="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-              Pengaturan
+            <button
+              onClick={() => { setShowDebug(v => !v); setShowMenu(false); }}
+              className={`w-full text-left px-4 py-3 rounded-xl font-bold transition-colors flex items-center gap-3 ${
+                showDebug ? 'bg-orange-100 text-orange-700' : 'hover:bg-orange-50 text-gray-800'
+              }`}
+            >
+               🔧 {showDebug ? 'Matikan Debug' : 'Mode Debug Jalur'}
             </button>
-            <div className="h-px bg-gray-200 my-1 w-full"></div>
             <button onClick={() => navigate('/')} className="w-full text-left px-4 py-3 hover:bg-red-50 text-red-600 font-bold rounded-xl transition-colors flex items-center gap-3">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-              Keluar
+               🚪 Keluar
             </button>
           </div>
         )}
       </div>
 
-      {/* Current Turn Indicator */}
-      <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-yellow-900 border-4 border-white rounded-full px-8 py-1.5 shadow-xl z-40 font-bold text-base md:text-lg animate-bounce">
-        {gameMode === 'multi' 
-          ? `Giliran ${currentPlayer === 1 ? player1Name : player2Name}`
-          : `Jalan Terus, ${player1Name}!`
-        }
-      </div>
+      {!isDeterminingFirst && !showDebug && (
+        <div className="absolute top-16 left-1/2 transform -translate-x-1/2 bg-yellow-400 text-yellow-900 border-4 border-white rounded-full px-8 py-1.5 shadow-xl z-40 font-bold text-base md:text-lg animate-bounce">
+          {gameMode === 'multi' 
+            ? `Giliran ${currentPlayer === 1 ? player1Name : player2Name}`
+            : `Jalan Terus, ${player1Name}!`
+          }
+        </div>
+      )}
       
-      {/* Deck Kartu Mekanisme (Pengganti Dadu) */}
-      <div 
-        ref={deckRef}
-        className="absolute bottom-24 left-1/2 transform -translate-x-1/2 flex space-x-4 z-40"
-      >
-        {/* Tumpukan kartu statis (Dekorasi) */}
-        <div className="relative group cursor-not-allowed hidden md:block opacity-70 deck-card hover:scale-105 transition-transform" onClick={() => alert("Kamu akan punya 3 Kartu Bantuan di sini nantinya!")}>
-           <img src={cardHelpImg} alt="Help Deck" className="w-24 h-36 object-cover rounded-xl shadow-md border-2 border-white/50 cursor-pointer" />
+      {/* Deck Kartu */}
+      {!showDebug && (
+      <div ref={deckRef} className="absolute bottom-20 left-1/2 transform -translate-x-1/2 flex items-end space-x-3 z-40">
+        {/* Kartu sampingan */}
+        <div className="relative cursor-not-allowed hidden md:block deck-card">
+           <img src={cardHelpImg} alt="Help" className="w-24 h-36 object-cover rounded-2xl shadow-xl border-4 border-green-400" />
         </div>
-        <div className="relative group cursor-not-allowed hidden md:block opacity-70 deck-card hover:scale-105 transition-transform" onClick={() => alert("Koleksi Kartu Belajarmu akan muncul di sini!")}>
-           <img src={cardLearningImg} alt="Learning Deck" className="w-24 h-36 object-cover rounded-xl shadow-md border-2 border-white/50 cursor-pointer" />
+        <div className="relative cursor-not-allowed hidden md:block deck-card">
+           <img src={cardLearningImg} alt="Learning" className="w-24 h-36 object-cover rounded-2xl shadow-xl border-4 border-blue-400" />
         </div>
-        <div className="relative group cursor-not-allowed hidden sm:block opacity-70 deck-card">
-           <img src={cardChallengeImg} alt="Challenge Deck" className="w-24 h-36 object-cover rounded-xl shadow-md border-2 border-white/50" />
-        </div>
-
+        
         {/* Kartu Langkah (Interaktif) */}
-        <div 
-          className={`relative cursor-pointer transition-transform hover:-translate-y-2 ${isRolling || isPlayerMoving ? 'pointer-events-none' : ''}`}
+        <div
+          className={`relative cursor-pointer transition-transform hover:-translate-y-2 ${isRolling || isPlayerMoving || isDeterminingFirst ? 'pointer-events-none' : ''}`}
           onClick={drawStepCard}
         >
           <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-white px-4 py-1 rounded-full text-xs font-bold text-blue-600 shadow-md whitespace-nowrap animate-pulse">
             Klik Kartu Langkah!
           </div>
-          
           <div ref={stepCardRef} className="relative w-32 h-48 perspective-1000">
             {drawnNumber ? (
               <div className="w-full h-full bg-white rounded-xl shadow-2xl border-4 border-blue-500 flex flex-col items-center justify-center">
+                 <span className="text-xs font-bold text-gray-400 uppercase tracking-widest">Kamu dapat</span>
                  <span className="text-6xl font-black text-blue-600 drop-shadow-md">{drawnNumber}</span>
                  <span className="text-sm font-bold text-gray-500 mt-2 uppercase tracking-widest">Langkah</span>
               </div>
@@ -476,87 +551,98 @@ const Game = () => {
             )}
           </div>
         </div>
-      </div>
 
-      {/* Judul Estetik di Bawah Deck Kartu */}
-      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-[100] pointer-events-none">
-        <div className="bg-white/20 backdrop-blur-md px-6 py-2 rounded-full border border-white/50 shadow-lg">
-          <h1 className="text-xs md:text-sm font-extrabold text-white tracking-[0.25em] uppercase" style={{ fontFamily: "'Nunito', sans-serif", textShadow: '0 2px 4px rgba(0,0,0,0.8)' }}>
-            Smart Road Challenge
-          </h1>
-        </div>
       </div>
-      
+      )}
+
       {/* Narrative Box */}
+      {!showDebug && (
       <div className="absolute bottom-6 md:bottom-10 right-4 md:right-10 z-50 pointer-events-none w-64 md:w-80">
         <div className="bg-white/90 backdrop-blur-lg px-5 py-3 rounded-2xl shadow-xl border-4 border-blue-400 flex items-center gap-3 transform transition-all hover:scale-105">
           <div className="bg-blue-100 rounded-full p-1 border-2 border-blue-300 shadow-inner flex-shrink-0">
              <img src={avatarImg} alt="Avatar" className="w-10 h-10 md:w-12 md:h-12 object-cover rounded-full" />
           </div>
           <div className="flex-1">
-             <p className="text-gray-800 font-bold text-xs md:text-sm leading-tight italic">
-               "{narrativeText}"
-             </p>
+             <p className="text-gray-800 font-bold text-xs md:text-sm leading-tight italic">"{narrativeText}"</p>
           </div>
         </div>
       </div>
+      )}
 
-      {/* Belajar Modal */}
+      {/* Modal Kartu Belajar — Premium */}
       {showBelajar && currentBelajarId && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[60] p-4 sm:p-6">
-           <div 
-             ref={belajarModalRef}
-             className="bg-white/95 backdrop-blur-md border-4 border-white rounded-3xl p-4 sm:p-6 max-w-sm sm:max-w-md w-full text-center shadow-2xl flex flex-col max-h-[95vh]"
-           >
-              <div className="flex-shrink-0 mb-3">
-                <div className="bg-green-500 text-white px-6 py-2 rounded-full font-extrabold text-sm sm:text-base inline-block shadow-md uppercase tracking-wider">
-                   Info Penting!
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4"
+          style={{ background: 'radial-gradient(ellipse at center, rgba(10,10,60,0.92) 0%, rgba(0,0,0,0.96) 100%)' }}>
+          
+          {/* Dekorasi bintang-bintang latar */}
+          <div className="absolute inset-0 pointer-events-none overflow-hidden">
+            {['10%,15%','85%,10%','20%,80%','75%,75%','50%,5%','5%,50%','90%,55%'].map((pos, i) => (
+              <div key={i} className="absolute text-yellow-300 animate-pulse"
+                style={{ left: pos.split(',')[0], top: pos.split(',')[1], fontSize: `${10 + (i % 3) * 6}px`, animationDelay: `${i * 0.3}s` }}>
+                ✦
+              </div>
+            ))}
+          </div>
+
+          <div ref={belajarModalRef} className="relative w-full max-w-sm">
+            {/* Badge header */}
+            <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-yellow-400 via-amber-400 to-yellow-500 text-yellow-900 font-black text-sm px-8 py-2 rounded-full shadow-xl border-2 border-yellow-200 whitespace-nowrap">
+              ⭐ KARTU BELAJAR ⭐
+            </div>
+
+            {/* Frame utama */}
+            <div className="rounded-[2rem] p-[3px] shadow-[0_0_60px_rgba(99,102,241,0.6),0_0_120px_rgba(59,130,246,0.3)]"
+              style={{ background: 'linear-gradient(135deg, #fbbf24, #818cf8, #3b82f6, #fbbf24)' }}>
+              <div className="rounded-[1.85rem] overflow-hidden"
+                style={{ background: 'linear-gradient(160deg, #1e1b4b 0%, #1e3a8a 50%, #1e1b4b 100%)' }}>
+                
+                {/* Gambar kartu dengan frame emas */}
+                <div className="relative p-3 pb-0">
+                  <div className="rounded-2xl overflow-hidden ring-2 ring-yellow-400/50 shadow-2xl">
+                    <img
+                      src={currentBelajarId === 7
+                        ? new URL('../../assets/kartu_belajar7.webp', import.meta.url).href
+                        : new URL(`../../assets/kartu_belajar${currentBelajarId}.png`, import.meta.url).href
+                      }
+                      className="w-full object-contain"
+                      style={{ maxHeight: '55vh' }}
+                    />
+                  </div>
+                  {/* Corner glow dekoratif */}
+                  <div className="absolute top-3 left-3 w-6 h-6 rounded-tl-2xl border-t-2 border-l-2 border-yellow-400/70" />
+                  <div className="absolute top-3 right-3 w-6 h-6 rounded-tr-2xl border-t-2 border-r-2 border-yellow-400/70" />
+                </div>
+
+                {/* Tombol tutup */}
+                <div className="p-4 pt-3">
+                  <button
+                    onClick={handleCloseBelajar}
+                    className="w-full font-black text-base py-3.5 rounded-2xl transition-all active:scale-95 shadow-xl border-2 border-white/20 tracking-wide"
+                    style={{
+                      background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 50%, #f59e0b 100%)',
+                      color: 'white',
+                      textShadow: '0 1px 4px rgba(0,0,0,0.3)',
+                      boxShadow: '0 4px 20px rgba(239,68,68,0.5)'
+                    }}
+                  >
+                    Tutup &amp; Lanjut 🚀
+                  </button>
                 </div>
               </div>
-              <div className="flex-1 min-h-0 relative flex items-center justify-center">
-                <img 
-                  src={currentBelajarId === 7 
-                       ? new URL(`../../assets/kartu_belajar7.webp`, import.meta.url).href 
-                       : new URL(`../../assets/kartu_belajar${currentBelajarId}.png`, import.meta.url).href}
-                  alt="Kartu Belajar" 
-                  className="w-full h-full max-h-[50vh] sm:max-h-[60vh] object-contain drop-shadow-xl" 
-                />
-              </div>
-              <div className="flex-shrink-0 mt-4">
-                <p className="text-gray-800 font-bold mb-4 text-sm sm:text-base">Membaca itu keren! <br/><span className="text-blue-600 font-black">+5 Poin Tambahan!</span></p>
-                <button 
-                   onClick={handleCloseBelajar}
-                   className="w-full bg-gradient-to-b from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700 text-white font-black text-lg py-3 rounded-2xl shadow-[0_4px_0_#1e3a8a] active:shadow-[0_0px_0_#1e3a8a] active:translate-y-1 transition-all"
-                >
-                   Tutup & Lanjut 🚀
-                </button>
-              </div>
-           </div>
+            </div>
+
+            {/* Corner stars dekoratif */}
+            <div className="absolute -top-3 -left-3 text-3xl animate-spin" style={{ animationDuration: '8s' }}>⭐</div>
+            <div className="absolute -top-3 -right-3 text-3xl animate-spin" style={{ animationDuration: '6s', animationDirection: 'reverse' }}>🌟</div>
+            <div className="absolute -bottom-3 -left-3 text-2xl animate-bounce" style={{ animationDelay: '0.5s' }}>✨</div>
+            <div className="absolute -bottom-3 -right-3 text-2xl animate-bounce" style={{ animationDelay: '0.2s' }}>✨</div>
+          </div>
         </div>
       )}
       
-      {/* Card Modal (Soal) */}
-      <CardModal
-        show={showCard}
-        card={currentCard}
-        onAnswer={handleCardAnswer}
-        onClose={() => {}} // Disabled close outside answer
-        powerups={currentPlayer === 1 ? p1Powerups : p2Powerups}
-        onUsePowerup={(type) => handleUsePowerup(currentPlayer, type)}
-      />
+      <CardModal show={showCard} card={currentCard} onAnswer={handleCardAnswer} powerups={currentPlayer === 1 ? p1Powerups : p2Powerups} onUsePowerup={(type) => handleUsePowerup(currentPlayer, type)} />
       
-      {/* Victory Screen */}
-      <VictoryScreen
-        show={gameOver}
-        winner={winner}
-        player1Score={player1Score}
-        player2Score={player2Score}
-        totalQuestions={totalQuestions}
-        correctAnswers={correctAnswers}
-        gameMode={gameMode}
-        onPlayAgain={resetGame}
-        onBackToMenu={() => navigate('/')}
-      />
+      <VictoryScreen show={gameOver} winner={winner === 1 ? player1Name : player2Name} player1Score={player1Score} player2Score={player2Score} totalQuestions={totalQuestions} correctAnswers={correctAnswers} gameMode={gameMode} onPlayAgain={resetGame} onBackToMenu={() => navigate('/')} />
     </div>
   )
 }

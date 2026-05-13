@@ -3,9 +3,9 @@ import { gsap } from 'gsap'
 import confetti from 'canvas-confetti'
 
 // Import Powerup Images
-import imgPolisi from '../../assets/bantuan_polisi.png'
-import imgLampu from '../../assets/bantuan_lampu.png'
-import imgSkip from '../../assets/bantuan_skip.png'
+import imgPolisi from '../../assets/bantuan_polisi.webp'
+import imgLampu from '../../assets/bantuan_lampu.webp'
+import imgSkip from '../../assets/bantuan_skip.webp'
 
 const CardModal = ({ show, card, onAnswer, onClose, powerups, onUsePowerup }) => {
   const modalRef = useRef(null)
@@ -47,6 +47,14 @@ const CardModal = ({ show, card, onAnswer, onClose, powerups, onUsePowerup }) =>
   const getOptionLetter = (index) => {
     return String.fromCharCode(65 + index); // 0 -> A, 1 -> B, etc.
   }
+
+  // Handle dynamic image path - check if extension needs to be changed
+  const getImagePath = (imageName) => {
+    if (!imageName) return '';
+    // Replace .png with .webp if it's in the assets
+    const webpImageName = imageName.replace('.png', '.webp');
+    return new URL(`../../assets/${webpImageName}`, import.meta.url).href;
+  };
 
   const checkAnswer = (userAnswer) => {
     let correct = false;
@@ -108,7 +116,7 @@ const CardModal = ({ show, card, onAnswer, onClose, powerups, onUsePowerup }) =>
             <div 
               className="absolute inset-0 z-0 opacity-50 blur-xl scale-125"
               style={{
-                backgroundImage: `url(${new URL(`../../assets/${card.image}`, import.meta.url).href})`,
+                backgroundImage: `url(${getImagePath(card.image)})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
               }}
@@ -116,7 +124,7 @@ const CardModal = ({ show, card, onAnswer, onClose, powerups, onUsePowerup }) =>
             
             {/* Main Image */}
             <img 
-              src={new URL(`../../assets/${card.image}`, import.meta.url).href}
+              src={getImagePath(card.image)}
               alt={`Soal ${card.id}`}
               className="w-full h-auto object-contain max-h-48 md:max-h-56 relative z-10 drop-shadow-2xl"
               onError={(e) => {
