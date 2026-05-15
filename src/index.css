@@ -82,8 +82,8 @@
     body {
         margin: 0;
         padding: 0;
-        overflow: hidden;
         font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        overflow-x: hidden; /* Mencegah scroll horizontal layar bocor, tapi vertikal tetap bisa */
     }
     * {
         box-sizing: border-box;
