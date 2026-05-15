@@ -94,92 +94,119 @@ const VictoryScreen = ({
   }
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 flex items-center justify-center z-50 p-4"
+         style={{ background: 'radial-gradient(ellipse at center, rgba(30,10,60,0.95) 0%, rgba(0,0,0,0.98) 100%)' }}>
+      
+      {/* Dekorasi bintang-bintang latar */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {['10%,15%','85%,10%','20%,80%','75%,75%','50%,5%','5%,50%','90%,55%'].map((pos, i) => (
+          <div key={i} className="absolute text-yellow-300 animate-pulse"
+            style={{ left: pos.split(',')[0], top: pos.split(',')[1], fontSize: `${10 + (i % 3) * 6}px`, animationDelay: `${i * 0.3}s` }}>
+            ✦
+          </div>
+        ))}
+      </div>
+
       <div 
         ref={modalRef}
-        className="bg-white rounded-2xl p-8 max-w-2xl mx-4 relative overflow-hidden"
+        className="relative w-full max-w-2xl flex flex-col"
       >
-        {/* Victory Background Image */}
-        <img 
-          src="/assets/ui_victory.webp" 
-          alt="Victory"
-          className="absolute inset-0 w-full h-full object-cover opacity-20"
-        />
-        
-        <div ref={contentRef} className="relative z-10">
-          {/* Victory Header */}
-          <div className="text-center mb-6">
-            <h2 className="text-4xl font-bold text-yellow-600 mb-2">
-              🎉 VICTORY! 🎉
-            </h2>
-            <p className="text-2xl text-gray-800">
-              Player {winner} Menang!
-            </p>
-          </div>
+        {/* Badge header */}
+        <div className="absolute -top-8 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-yellow-300 via-yellow-400 to-yellow-500 text-yellow-900 font-black text-xl px-12 py-3 rounded-full shadow-[0_10px_30px_rgba(253,224,71,0.5)] border-4 border-yellow-100 whitespace-nowrap uppercase tracking-widest animate-bounce">
+          🏆 VICTORY! 🏆
+        </div>
 
-          {/* Score Summary */}
-          <div className="bg-blue-50 rounded-lg p-6 mb-6">
-            <h3 className="text-xl font-bold text-center mb-4 text-blue-800">
-              📊 Laporan Belajar
-            </h3>
+        {/* Frame utama */}
+        <div className="rounded-[2.5rem] p-[5px] shadow-[0_0_80px_rgba(234,179,8,0.5),0_0_120px_rgba(245,158,11,0.3)] flex flex-col overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #fef08a, #eab308, #ca8a04, #fef08a)' }}>
+          <div ref={contentRef} className="bg-white/95 backdrop-blur-xl rounded-[2.3rem] p-8 md:p-10 flex flex-col relative overflow-hidden">
             
-            <div className="grid grid-cols-2 gap-4 mb-4">
-              <div className="text-center">
-                <p className="text-lg font-semibold text-gray-700">Player 1</p>
-                <p className="text-3xl font-bold text-blue-600">{player1Score}</p>
-                <p className="text-sm text-gray-600">poin</p>
-              </div>
+            {/* Background pattern */}
+            <div className="absolute inset-0 opacity-5 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, black 1px, transparent 0)', backgroundSize: '24px 24px' }}></div>
+
+            <div className="text-center mb-8 relative z-10 mt-4">
+              <p className="text-3xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-500 to-orange-600 drop-shadow-sm uppercase tracking-wider">
+                {winner} Menang!
+              </p>
+            </div>
+
+            {/* Score Summary */}
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50/50 rounded-3xl p-6 md:p-8 mb-8 border-2 border-blue-100 shadow-inner relative z-10">
+              <h3 className="text-xl font-black text-center mb-6 text-indigo-800 uppercase tracking-widest flex items-center justify-center gap-2">
+                <span className="text-2xl">📊</span> Laporan Hasil
+              </h3>
               
-              {gameMode === 'multi' && (
-                <div className="text-center">
-                  <p className="text-lg font-semibold text-gray-700">Player 2</p>
-                  <p className="text-3xl font-bold text-pink-600">{player2Score}</p>
-                  <p className="text-sm text-gray-600">poin</p>
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="text-center bg-white p-4 rounded-2xl shadow-sm border border-blue-50">
+                  <p className="text-lg font-bold text-gray-500 mb-1">Player 1</p>
+                  <p className="text-4xl font-black text-blue-600 drop-shadow-sm">{player1Score}</p>
+                  <p className="text-sm font-bold text-blue-300 uppercase tracking-wider mt-1">Poin</p>
                 </div>
-              )}
+                
+                {gameMode === 'multi' ? (
+                  <div className="text-center bg-white p-4 rounded-2xl shadow-sm border border-pink-50">
+                    <p className="text-lg font-bold text-gray-500 mb-1">Player 2</p>
+                    <p className="text-4xl font-black text-pink-600 drop-shadow-sm">{player2Score}</p>
+                    <p className="text-sm font-bold text-pink-300 uppercase tracking-wider mt-1">Poin</p>
+                  </div>
+                ) : (
+                  <div className="text-center bg-white p-4 rounded-2xl shadow-sm border border-green-50 flex flex-col items-center justify-center">
+                    <p className="text-lg font-bold text-gray-500 mb-1">Status</p>
+                    <p className="text-2xl font-black text-green-500 drop-shadow-sm">Selesai</p>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-white rounded-2xl p-5 border border-indigo-50 shadow-sm space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 font-bold">Total Soal Dijawab</span>
+                  <span className="font-black text-xl text-gray-700">{totalQuestions}</span>
+                </div>
+                <div className="w-full h-px bg-gray-100"></div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 font-bold">Jawaban Benar</span>
+                  <span className="font-black text-xl text-green-500">{correctAnswers}</span>
+                </div>
+                <div className="w-full h-px bg-gray-100"></div>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-500 font-bold">Akurasi</span>
+                  <span className="font-black text-2xl text-indigo-600">
+                    {totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%
+                  </span>
+                </div>
+              </div>
             </div>
 
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-700">Total Soal Dijawab:</span>
-                <span className="font-bold">{totalQuestions}</span>
-              </div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-gray-700">Jawaban Benar:</span>
-                <span className="font-bold text-green-600">{correctAnswers}</span>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-gray-700">Tingkat Keberhasilan:</span>
-                <span className="font-bold text-blue-600">
-                  {totalQuestions > 0 ? Math.round((correctAnswers / totalQuestions) * 100) : 0}%
-                </span>
-              </div>
+            {/* Motivational Message */}
+            <div className="bg-gradient-to-r from-amber-100 to-yellow-100 rounded-2xl p-5 mb-8 border-2 border-yellow-200 shadow-sm relative z-10 text-center transform transition-transform hover:scale-105">
+              <p className="text-xl font-black text-amber-700">
+                {getMotivationalMessage()}
+              </p>
             </div>
-          </div>
 
-          {/* Motivational Message */}
-          <div className="bg-yellow-50 rounded-lg p-4 mb-6">
-            <p className="text-center text-lg font-medium text-yellow-800">
-              {getMotivationalMessage()}
-            </p>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-4 justify-center">
-            <button
-              onClick={onPlayAgain}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-bold transition-colors transform hover:scale-105"
-            >
-              🔄 Main Lagi
-            </button>
-            <button
-              onClick={onBackToMenu}
-              className="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-bold transition-colors transform hover:scale-105"
-            >
-              🏠 Kembali ke Menu
-            </button>
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
+              <button
+                onClick={onPlayAgain}
+                className="flex-1 bg-gradient-to-r from-green-400 to-emerald-500 hover:from-green-500 hover:to-emerald-600 text-white px-6 py-4 rounded-2xl font-black text-lg transition-all transform hover:scale-105 shadow-xl border-b-4 border-green-700 active:border-b-0 active:translate-y-1 flex items-center justify-center gap-2"
+              >
+                <span className="text-2xl">🔄</span> Main Lagi
+              </button>
+              <button
+                onClick={onBackToMenu}
+                className="flex-1 bg-gradient-to-r from-blue-400 to-indigo-500 hover:from-blue-500 hover:to-indigo-600 text-white px-6 py-4 rounded-2xl font-black text-lg transition-all transform hover:scale-105 shadow-xl border-b-4 border-blue-700 active:border-b-0 active:translate-y-1 flex items-center justify-center gap-2"
+              >
+                <span className="text-2xl">🏠</span> Ke Menu Utama
+              </button>
+            </div>
           </div>
         </div>
+        
+        {/* Corner stars dekoratif */}
+        <div className="absolute -top-5 -left-5 text-5xl animate-spin z-20 pointer-events-none" style={{ animationDuration: '8s' }}>⭐</div>
+        <div className="absolute -top-5 -right-5 text-5xl animate-spin z-20 pointer-events-none" style={{ animationDuration: '6s', animationDirection: 'reverse' }}>🌟</div>
+        <div className="absolute -bottom-5 -left-5 text-4xl animate-bounce z-20 pointer-events-none" style={{ animationDelay: '0.5s' }}>✨</div>
+        <div className="absolute -bottom-5 -right-5 text-4xl animate-bounce z-20 pointer-events-none" style={{ animationDelay: '0.2s' }}>✨</div>
       </div>
     </div>
   )

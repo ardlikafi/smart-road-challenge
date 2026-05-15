@@ -32,6 +32,13 @@ import catImg from '../../assets/cat.webp'
 
 const TOTAL_MAPS = 8
 
+const calculateScale = (yStr) => {
+  if (!yStr) return 1;
+  const y = parseFloat(yStr);
+  let scale = 0.5 + ((y - 30) / (95 - 30)) * (1.1 - 0.5);
+  return Math.max(0.4, Math.min(1.2, scale));
+}
+
 const GameBoardFinal = ({ 
   player1Position, 
   player2Position, 
@@ -39,7 +46,9 @@ const GameBoardFinal = ({
   tileCoordinates,
   player1Pion = 'boy',
   player2Pion = 'girl',
-  showDebug = false
+  showDebug = false,
+  weatherType = 'normal',
+  currentPlayer = 1
 }) => {
   const containerRef = useRef(null)
   const mapWrapperRef = useRef(null)
@@ -130,100 +139,106 @@ const GameBoardFinal = ({
     }
   }, [debugMapIndex, showDebug, TOTAL_MAPS]);
 
-  // Update posisi pion & kamera ketika posisi player berubah
+  // State tracking untuk deteksi perubahan posisi
+  const prevP1Pos = useRef(player1Position);
+  const prevP2Pos = useRef(player2Position);
+
+  // Animasi Player 1
   useEffect(() => {
     if (!mapWrapperRef.current) return;
-    
-    const coord1 = tileCoordinates[player1Position];
-    
-    if (coord1 && player1Ref.current) {
-      const totalWidth = mapWrapperRef.current.offsetWidth;
+    const coord = tileCoordinates[player1Position];
+    if (coord && player1Ref.current) {
+      const scale = calculateScale(coord.y);
       
-      let pxX1 = coord1.x;
-      if (typeof pxX1 === 'string' && pxX1.includes('%')) {
-        pxX1 = (parseFloat(pxX1) / 100) * totalWidth;
-      }
-      
-      // Pertama kali: set langsung tanpa animasi
+      // Jika pertama kali, cukup set tanpa animasi lompat
       if (!player1Ref.current.style.left) {
-        gsap.set(player1Ref.current, { left: coord1.x, top: coord1.y });
-      } else {
-        gsap.to(player1Ref.current, {
-          left: coord1.x,
-          top: coord1.y,
-          duration: 0.55,
-          ease: 'power1.inOut'
-        });
+        gsap.set(player1Ref.current, { left: coord.x, top: coord.y, scale: scale, transformOrigin: 'bottom center' });
+      } else if (prevP1Pos.current !== player1Position) {
+        // Jika posisi berubah, jalan + lompat
+        gsap.to(player1Ref.current, { left: coord.x, top: coord.y, scale: scale, duration: 0.55, ease: 'power1.inOut' });
+        const pionImg = player1Ref.current.querySelector('img');
+        if (pionImg) {
+          gsap.fromTo(pionImg, { y: 0 }, { y: -25, duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.out' });
+        }
       }
+      prevP1Pos.current = player1Position;
+    }
+  }, [player1Position, tileCoordinates]);
 
-      // Efek lompat saat bergerak
-      const pionImg = player1Ref.current.querySelector('img');
-      if (pionImg) {
-        gsap.fromTo(pionImg,
-          { y: 0 },
-          { y: -25, duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.out' }
-        );
-      }
-
-      // --- Kamera: Paging per map dengan fade transition ---
-      const mapWidth = totalWidth / TOTAL_MAPS;
-      const newMapIndex = Math.min(TOTAL_MAPS - 1, Math.max(0, Math.floor(pxX1 / mapWidth)));
-      const targetCameraX = newMapIndex * mapWidth;
+  // Animasi Player 2
+  useEffect(() => {
+    if (gameMode !== 'multi' || !mapWrapperRef.current) return;
+    const coord = tileCoordinates[player2Position];
+    if (coord && player2Ref.current) {
+      const scale = calculateScale(coord.y);
       
-      if (newMapIndex !== currentMapRef.current) {
-        currentMapRef.current = newMapIndex;
-        // Fade ke putih → geser kamera → fade in
-        gsap.to(transitionOverlayRef.current, {
-          opacity: 1,
-          duration: 0.25,
-          onComplete: () => {
-            gsap.set(mapWrapperRef.current, { x: -targetCameraX });
-            gsap.to(transitionOverlayRef.current, { opacity: 0, duration: 0.4, delay: 0.1 });
-          }
-        });
-      } else {
-        gsap.to(mapWrapperRef.current, {
-          x: -targetCameraX,
-          duration: 0.4,
-          ease: 'power2.out'
-        });
+      if (!player2Ref.current.style.left) {
+        gsap.set(player2Ref.current, { left: coord.x, top: coord.y, scale: scale, transformOrigin: 'bottom center' });
+      } else if (prevP2Pos.current !== player2Position) {
+        gsap.to(player2Ref.current, { left: coord.x, top: coord.y, scale: scale, duration: 0.55, ease: 'power1.inOut' });
+        const pionImg = player2Ref.current.querySelector('img');
+        if (pionImg) {
+          gsap.fromTo(pionImg, { y: 0 }, { y: -25, duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.out' });
+        }
       }
-
-      // Parallax background
-      if (containerRef.current) {
-        gsap.to(containerRef.current, {
-          backgroundPositionX: `${-targetCameraX * 0.12}px`,
-          duration: 1.0,
-          ease: 'power2.inOut'
-        });
-      }
+      prevP2Pos.current = player2Position;
     }
+  }, [player2Position, tileCoordinates, gameMode]);
+
+  // Sistem Kamera Cerdas (Mengikuti pemain yang aktif)
+  useEffect(() => {
+    if (!mapWrapperRef.current || showDebug || !tileCoordinates.length) return;
     
-    // Animasi Player 2 (multiplayer)
-    if (gameMode === 'multi') {
-      const coord2 = tileCoordinates[player2Position];
-      if (coord2 && player2Ref.current) {
-        if (!player2Ref.current.style.left) {
-          gsap.set(player2Ref.current, { left: coord2.x, top: coord2.y });
-        } else {
-          gsap.to(player2Ref.current, {
-            left: coord2.x,
-            top: coord2.y,
-            duration: 0.55,
-            ease: 'power1.inOut'
-          });
-        }
+    const activePosition = currentPlayer === 1 ? player1Position : player2Position;
+    const activeCoord = tileCoordinates[activePosition];
+    if (!activeCoord) return;
 
-        const pionImg2 = player2Ref.current.querySelector('img');
-        if (pionImg2) {
-          gsap.fromTo(pionImg2,
-            { y: 0 },
-            { y: -25, duration: 0.25, yoyo: true, repeat: 1, ease: 'power1.out' }
-          );
-        }
-      }
+    const totalWidth = mapWrapperRef.current.offsetWidth;
+    let pxX = activeCoord.x;
+    if (typeof pxX === 'string' && pxX.includes('%')) {
+      pxX = (parseFloat(pxX) / 100) * totalWidth;
     }
-  }, [player1Position, player2Position, tileCoordinates, gameMode]);
+
+    const viewportWidth = window.innerWidth;
+    const mapWidth = totalWidth / TOTAL_MAPS;
+    const newMapIndex = Math.min(TOTAL_MAPS - 1, Math.max(0, Math.floor(pxX / mapWidth)));
+
+    // Clamp kamera agar tidak bocor memperlihatkan sisi map
+    const minCameraX = newMapIndex * mapWidth;
+    const maxCameraX = Math.max(minCameraX, (newMapIndex + 1) * mapWidth - viewportWidth);
+
+    let targetCameraX = pxX - (viewportWidth / 2);
+    targetCameraX = Math.max(minCameraX, Math.min(maxCameraX, targetCameraX));
+
+    if (newMapIndex !== currentMapRef.current) {
+      currentMapRef.current = newMapIndex;
+      // Transisi Halus Pindah Zona Map
+      gsap.to(transitionOverlayRef.current, {
+        opacity: 1,
+        duration: 0.25,
+        onComplete: () => {
+          gsap.set(mapWrapperRef.current, { x: -targetCameraX });
+          gsap.to(transitionOverlayRef.current, { opacity: 0, duration: 0.4, delay: 0.1 });
+        }
+      });
+    } else {
+      // Panning kamera halus saat pemain bergerak
+      gsap.to(mapWrapperRef.current, {
+        x: -targetCameraX,
+        duration: 0.8,
+        ease: 'power2.out'
+      });
+    }
+
+    // Parallax background
+    if (containerRef.current) {
+      gsap.to(containerRef.current, {
+        backgroundPositionX: `${-targetCameraX * 0.12}px`,
+        duration: 1.0,
+        ease: 'power2.inOut'
+      });
+    }
+  }, [currentPlayer, player1Position, player2Position, tileCoordinates, showDebug, TOTAL_MAPS]);
 
   // Animasi idle & environment
   useEffect(() => {
@@ -291,15 +306,15 @@ const GameBoardFinal = ({
         backgroundRepeat: 'repeat-x'
       }}
     >
-      {/* Map Wrapper: 6 map sejajar secara horizontal */}
+      {/* Map Wrapper: 8 map sejajar secara horizontal dengan lebar minimum 100vw agar tidak bocor */}
       <div 
         ref={mapWrapperRef}
         className="absolute top-0 left-0 h-screen flex flex-row cursor-crosshair"
-        style={{ width: `${TOTAL_MAPS * 100}vw` }}
+        style={{ width: `calc(${TOTAL_MAPS} * max(100vw, 100vh * 16 / 9))` }}
         onClick={handleMapClick}
       >
         {mapImages.map((mapImg, index) => (
-          <div key={index} className="relative h-screen flex-shrink-0" style={{ width: '100vw' }}>
+          <div key={index} className="relative h-screen flex-shrink-0" style={{ width: 'max(100vw, calc(100vh * 16 / 9))' }}>
             <img 
               src={mapImg} 
               alt={`Map ${index + 1}`} 
@@ -392,18 +407,40 @@ const GameBoardFinal = ({
         )}
       </div>
 
+      {/* WEATHER SYSTEM OVERLAYS */}
+      {weatherType === 'rain' && (
+        <div className="absolute inset-0 z-[35] pointer-events-none bg-slate-900/40 transition-colors duration-1000 overflow-hidden flex justify-center">
+           {Array.from({ length: 80 }).map((_, i) => (
+             <div 
+               key={i} 
+               className="absolute bg-blue-100/60 w-[2px] h-[35px] rounded-full"
+               style={{
+                 left: `${Math.random() * 100}%`,
+                 top: `-${Math.random() * 20 + 10}vh`,
+                 animation: `rain-fall ${0.3 + Math.random() * 0.4}s linear infinite`,
+                 animationDelay: `${Math.random()}s`
+               }}
+             />
+           ))}
+        </div>
+      )}
+
+      {weatherType === 'clear' && (
+        <div className="absolute inset-0 z-[35] pointer-events-none mix-blend-overlay bg-gradient-to-tr from-transparent via-yellow-200/30 to-orange-400/40 transition-colors duration-1000" />
+      )}
+
       {/* Awan & Burung — fixed ke layar biar tidak ikut scroll map */}
       <div className="absolute top-8 left-0 opacity-85 z-20 env-cloud-1 pointer-events-none">
-        <img src={cloud1Img} alt="Cloud" className="w-56 md:w-72 drop-shadow-md" />
+        <img src={cloud1Img} alt="Cloud" className={`w-56 md:w-72 drop-shadow-md transition-all duration-1000 ${weatherType === 'rain' ? 'brightness-50 grayscale' : ''}`} />
       </div>
       <div className="absolute top-16 right-0 opacity-75 z-20 env-cloud-2 pointer-events-none">
-        <img src={cloud2Img} alt="Cloud" className="w-64 md:w-80 drop-shadow-md" />
+        <img src={cloud2Img} alt="Cloud" className={`w-64 md:w-80 drop-shadow-md transition-all duration-1000 ${weatherType === 'rain' ? 'brightness-50 grayscale' : ''}`} />
       </div>
       <div className="absolute top-24 left-0 z-20 env-bird pointer-events-none">
         <img src={birdImg} alt="Bird" className="w-14 md:w-20 drop-shadow-sm" />
       </div>
 
-      {/* Fade Transition Overlay (dipakai saat pindah map) */}
+      {/* Fade Transition Overlay (dipakai saat pindah map antar zona) */}
       <div 
         ref={transitionOverlayRef} 
         className="absolute inset-0 bg-white z-[60] pointer-events-none opacity-0"

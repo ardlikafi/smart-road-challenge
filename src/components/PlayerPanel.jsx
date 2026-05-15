@@ -8,7 +8,7 @@ import ceweAdatImg from '../../assets/tile_ceweadat.webp'
 import cowoAdatImg from '../../assets/tile_cowoadat.webp'
 import superwomanImg from '../../assets/tile_superwoman.webp'
 
-const PlayerPanel = ({ playerNumber, playerName, score, position, isActive, isFlipped = false, pionType = 'boy' }) => {
+const PlayerPanel = ({ playerNumber, playerName, score, position, isActive, isFlipped = false, pionType = 'boy', streak = 0 }) => {
   const scoreRef = useRef(null)
 
   // Animasi saat skor bertambah
@@ -69,6 +69,13 @@ const PlayerPanel = ({ playerNumber, playerName, score, position, isActive, isFl
                <span ref={scoreRef} className="text-xs md:text-sm font-black text-yellow-900 tabular-nums drop-shadow-sm">{score} PTS</span>
              </div>
              
+             {/* Combo Badge (Hanya tampil jika streak > 0) */}
+             {streak > 0 && (
+               <div className="flex items-center bg-gradient-to-r from-orange-500 to-red-600 px-3 md:px-4 py-1 rounded-full shadow-[0_0_15px_rgba(249,115,22,0.8)] border-2 border-orange-200 animate-pulse transform hover:scale-110 transition-all">
+                 <span className="text-xs md:text-sm font-black text-white drop-shadow-md tracking-wider">{streak}🔥 COMBO</span>
+               </div>
+             )}
+
              {/* Position Badge */}
              <div className="flex items-center bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full shadow-inner border border-white/30">
                <span className="text-sm mr-1.5">📍</span>

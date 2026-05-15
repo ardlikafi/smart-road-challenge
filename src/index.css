@@ -117,3 +117,10 @@
 .label-blink {
     animation: label-blink 1.5s ease-in-out infinite;
 }
+
+@keyframes rain-fall {
+  0% { transform: translateY(-10vh) rotate(15deg); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(15deg); opacity: 0; }
+}
