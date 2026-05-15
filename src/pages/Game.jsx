@@ -654,7 +654,7 @@ const Game = () => {
   const weatherType = mapEvent.modifier === -1 ? 'rain' : mapEvent.modifier === 1 ? 'clear' : 'normal';
 
   return (
-    <div className={`game-container relative w-full h-screen overflow-hidden transition-colors duration-1000 ${weatherType === 'rain' ? 'bg-slate-700' : 'bg-sky-200'}`}>
+    <div className={`game-container relative w-screen h-screen overflow-hidden transition-colors duration-1000 ${weatherType === 'rain' ? 'bg-slate-700' : 'bg-sky-200'}`}>
       <GameBoardFinal
         player1Position={player1Position}
         player2Position={player2Position}
