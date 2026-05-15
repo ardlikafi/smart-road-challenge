@@ -73,11 +73,11 @@ const PlayerSetup = () => {
   ]
 
   return (
-    <div className="w-full min-h-screen flex items-center justify-center relative font-nunito p-4 overflow-y-auto"
+    <div className="w-full min-h-screen flex flex-col items-center justify-start relative font-nunito p-4 overflow-y-auto"
          style={{ backgroundImage: `url(${mapOpeningImg})`, backgroundSize: 'cover', backgroundPosition: 'center', backgroundAttachment: 'fixed' }}>
       
       {/* Dark overlay with animated gradient */}
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-0"></div>
+      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-0 fixed"></div>
       
       {/* Decorative stars */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
@@ -89,7 +89,7 @@ const PlayerSetup = () => {
         ))}
       </div>
 
-      <div ref={containerRef} className="relative z-10 w-full max-w-2xl py-8">
+      <div ref={containerRef} className="relative z-10 w-full max-w-2xl py-8 mt-10 md:my-auto">
         
         {/* Floating Header */}
         <div className="absolute -top-6 left-1/2 -translate-x-1/2 z-20 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 text-white font-black text-xl md:text-2xl px-12 py-3 rounded-full shadow-[0_10px_30px_rgba(79,70,229,0.5)] border-4 border-white whitespace-nowrap uppercase tracking-widest animate-bounce">
